@@ -12,7 +12,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     if (mounted) {
       Timer(Duration(seconds: 2),
-          () => Navigator.pushReplacementNamed(context, '/indexnew'));
+          () => Navigator.pushReplacementNamed(context, '/login'));
     }
     super.initState();
   }
