@@ -1,6 +1,6 @@
-# ujikom_efrizal
+# Aplikasi Ticketing Penerbangan dan Kereta berbasis Mobile menggunakan Flutter
 
-A new Flutter project.
+Ya gitulah
 
 ## Getting Started
 
