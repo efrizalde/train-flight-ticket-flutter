@@ -159,10 +159,10 @@ class _LoginPageState extends State<LoginPage> {
                       _loadingDialog(context);
 
                       //DO LOGIN HERE
-                      Timer(
-                          Duration(seconds: 2),
-                          () => Navigator.pushReplacementNamed(
-                              context, '/indexnew'));
+                      Timer(Duration(seconds: 2), () {
+                        Navigator.of(context).pop(true);
+                        Navigator.pushReplacementNamed(context, '/indexnew');
+                      });
                     }
                   },
                   child: Container(

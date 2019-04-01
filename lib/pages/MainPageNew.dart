@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:ujikom_efrizal/model/AirportData.dart';
 import 'package:ujikom_efrizal/model/TrainStationData.dart';
 import 'package:ujikom_efrizal/pages/FlightTab.dart';
+import 'package:ujikom_efrizal/pages/components/DrawerComponent.dart';
 import 'package:ujikom_efrizal/utils/AirportUtils.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -376,6 +377,7 @@ class _MainPageNewState extends State<MainPageNew> {
         );
 
     return Scaffold(
+      drawer: DrawerComponent(),
       appBar: AppBar(
         elevation: 0.0,
         title: Text("Travelijal"),

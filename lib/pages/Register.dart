@@ -111,9 +111,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   inputType: InputType.date,
                   format: DateFormat("dd MMMM yyyy"),
                   editable: false,
-                  resetIcon: null,
-                  firstDate: DateTime.utc(DateTime.now().year,
-                      DateTime.now().month, DateTime.now().day - 1),
                   decoration: InputDecoration(
                     border: const UnderlineInputBorder(),
                     icon: const Icon(
@@ -244,11 +241,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       ));
 
                       //DO REGISTER AND LOGIN
-
-                      Timer(
-                          Duration(seconds: 2),
-                          () => Navigator.pushReplacementNamed(
-                              context, '/indexnew'));
+                      Timer(Duration(seconds: 2), () {
+                        Navigator.of(context).pop(true);
+                        Navigator.pushReplacementNamed(context, '/indexnew');
+                      });
                     }
                   },
                   child: Container(

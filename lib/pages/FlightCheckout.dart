@@ -337,7 +337,7 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0)),
                 onPressed: () {
-                  Navigator.popUntil(context, ModalRoute.withName("/index"));
+                  Navigator.popUntil(context, ModalRoute.withName("/indexnew"));
                 },
                 child: Container(
                   width: MediaQuery.of(context).size.width,
