@@ -1,1 +1,1 @@
-- [Link to Website Application](https://github.com/efrizalde/train-flight-ticket-flutter).
+- [Link to Website Application](https://github.com/efrizalde/train-flight-ticket-web-laravel).
