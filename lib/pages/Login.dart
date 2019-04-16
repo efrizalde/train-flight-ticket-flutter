@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:ujikom_efrizal/utils/Navigator.dart';
+import 'package:ujikom_efrizal/utils/services/PenumpangServices.dart';
+import 'package:crypto/crypto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -19,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscureText = true;
   var iconVisibleOff = new Icon(Icons.visibility_off, color: Colors.black);
   var iconVisible = new Icon(Icons.visibility, color: Colors.black);
-  String email, pass;
+  String uname, pass;
 
   MyNavig nav = MyNavig();
 
@@ -42,12 +45,16 @@ class _LoginPageState extends State<LoginPage> {
       return null;
   }
 
-  _goToRegister() {
-    Navigator.of(context).pushNamed('/register');
+  _setPrefs(String newuname) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("saved_uname", newuname);
+    print(prefs.getString("saved_uname"));
+
+    return uname;
   }
 
-  _goToRegisterPhone() {
-    // nav.goToRegisterPhone(context);
+  _goToRegister() {
+    Navigator.of(context).pushNamed('/register');
   }
 
   _loadingDialog(context) {
@@ -89,10 +96,14 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(height: 30.0),
                 Container(
                   alignment: Alignment.center,
-                  child: Text("Logo Here"),
+                  child: Image.asset('assets/images/app-logo.png'),
                   height: 150.0,
+                  padding: EdgeInsets.all(10.0),
                   width: 150.0,
-                  color: Colors.grey,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).primaryColor
+                  ),
                 ),
                 SizedBox(height: 30.0),
                 Text(
@@ -119,9 +130,9 @@ class _LoginPageState extends State<LoginPage> {
                       return "Harap isi username anda";
                     return null;
                   },
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   onSaved: (String value) {
-                    email = value;
+                    uname = value;
                   },
                 ),
                 TextFormField(
@@ -159,9 +170,19 @@ class _LoginPageState extends State<LoginPage> {
                       _loadingDialog(context);
 
                       //DO LOGIN HERE
-                      Timer(Duration(seconds: 2), () {
+                      PenumpangServices()
+                          .login(uname: uname, pass: pass)
+                          .then((value) {
+                        _setPrefs(uname);
                         Navigator.of(context).pop(true);
                         Navigator.pushReplacementNamed(context, '/indexnew');
+                      }).catchError((onError) {
+                        print(onError.toString());
+                        Navigator.of(context).pop(true);
+                        _scaffoldKey.currentState.showSnackBar(SnackBar(
+                          content: Text(
+                              "Login Gagal! Harap periksa username dan password anda."),
+                        ));
                       });
                     }
                   },

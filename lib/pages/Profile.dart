@@ -1,95 +1,114 @@
-import 'dart:async';
-
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ujikom_efrizal/model/UsersData.dart';
 import 'package:ujikom_efrizal/utils/services/PenumpangServices.dart';
 
-class RegisterPage extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
   @override
-  _RegisterPageState createState() => _RegisterPageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _ProfilePageState extends State<ProfilePage> {
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  final GlobalKey<FormFieldState<String>> _passwordFieldKey =
-      new GlobalKey<FormFieldState<String>>();
-  final GlobalKey<FormFieldState<String>> _passwordVFieldKey =
-      new GlobalKey<FormFieldState<String>>();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-  bool _obscureText = true;
+  bool isEditing = false;
+  bool isSaving = false;
+  bool isLoading = true;
   var iconVisibleOff = new Icon(Icons.visibility_off, color: Colors.black);
   var iconVisible = new Icon(Icons.visibility, color: Colors.black);
   int _radioValue = 0;
-  String pass, vpass;
-  UsersData udata = new UsersData();
 
-  String _validatePassword(String value) {
-    // _formWasEdited = true;
-    final FormFieldState<String> passwordField = _passwordFieldKey.currentState;
-    if (passwordField.value == null || passwordField.value.isEmpty)
-      return 'Please enter a password.';
-    return null;
-  }
-
-  String _validateEmail(String value) {
-    // _formWasEdited = true;
-    Pattern pattern =
-        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-    RegExp regex = new RegExp(pattern);
-    if (!regex.hasMatch(value))
-      return 'The E-mail Address must be a valid email address.';
-    else
-      return null;
-  }
+  UsersData _usersData = new UsersData();
 
   void _handleRadioValueChange(int value) {
     setState(() {
       _radioValue = value;
+
       switch (_radioValue) {
         case 0:
-          udata.sex = "l";
+          _usersData.sex = "l";
           break;
         case 1:
-          udata.sex = "p";
+          _usersData.sex = "p";
           break;
       }
     });
   }
 
+  void _doLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: Text("Log Out"),
+            content: Text(
+                "Apa anda serius ingin keluar dari akun ${_usersData.fullname}"),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text("Tidak"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: new Text("Iya"),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  Navigator.popUntil(context, ModalRoute.withName("/indexnew"));
+                  Navigator.pushReplacementNamed(context, "/login");
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  prefs.setString("saved_uname", "");
+                  PenumpangServices().logout(_usersData.username);
+                },
+              ),
+            ],
+          ),
+    );
+  }
+
+  void getData() {
+    setState(() {
+      isLoading = true;
+    });
+    PenumpangServices().getUname().then((un) {
+      PenumpangServices().getuser(un).then((onValue) {
+        setState(() {
+          _usersData = onValue;
+          isLoading = false;
+          if (onValue.sex.toString().toLowerCase() == "l") {
+            _radioValue = 0;
+          } else {
+            _radioValue = 1;
+          }
+        });
+      });
+    });
+  }
+
   @override
   void initState() {
-    setState(() {
-      udata.sex = "l";
-    });
+    if (mounted) {
+      getData();
+    }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-
-    Widget _loginBody() {
-      return SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.0),
-          color: Colors.white,
+    _profileBody() {
+      return Container(
+          margin: EdgeInsets.symmetric(horizontal: 20.0),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(height: 15.0),
                 TextFormField(
+                  initialValue: _usersData.username,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
                     icon: const Icon(
@@ -101,10 +120,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     labelStyle: TextStyle(color: Colors.black45),
                   ),
                   maxLength: 10,
+                  enabled: false,
                   keyboardType: TextInputType.emailAddress,
-                  onSaved: (String value) {
-                    udata.username = value;
-                  },
                   validator: (value) {
                     if (value == null || value.isEmpty)
                       return "Harap isi username anda";
@@ -112,6 +129,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   },
                 ),
                 TextFormField(
+                  initialValue: _usersData.fullname,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
                     icon: const Icon(
@@ -123,9 +141,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     labelStyle: TextStyle(color: Colors.black45),
                   ),
                   maxLength: 30,
+                  enabled: isEditing,
                   keyboardType: TextInputType.emailAddress,
                   onSaved: (String value) {
-                    udata.fullname = value;
+                    _usersData.fullname = value;
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty)
@@ -134,10 +153,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   },
                 ),
                 DateTimePickerFormField(
+                  initialValue: DateTime.parse(_usersData.dateofbirth),
                   textAlign: TextAlign.left,
                   inputType: InputType.date,
                   format: DateFormat("dd MMMM yyyy"),
                   editable: false,
+                  enabled: isEditing,
                   decoration: InputDecoration(
                     border: const UnderlineInputBorder(),
                     icon: const Icon(
@@ -151,7 +172,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   onChanged: (dt) {
                     if (dt != null) {
                       setState(() {
-                        udata.dateofbirth = DateFormat("yyyy-MM-dd").format(dt);
+                        _usersData.fullname =
+                            DateFormat("yyyy-MM-dd").format(dt).toString();
                       });
                     } else {
                       print("canceled");
@@ -166,6 +188,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   },
                 ),
                 TextFormField(
+                  initialValue: _usersData.phone,
+                  enabled: isEditing,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
                     icon: const Icon(
@@ -179,7 +203,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   maxLength: 13,
                   keyboardType: TextInputType.phone,
                   onSaved: (String value) {
-                    udata.phone = value;
+                    _usersData.phone = value;
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty)
@@ -187,7 +211,55 @@ class _RegisterPageState extends State<RegisterPage> {
                     return null;
                   },
                 ),
+                Column(
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        SizedBox(width: 3.0),
+                        Icon(
+                          Icons.people,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(width: 12.0),
+                        Text(
+                          "Jenis Kelamin",
+                          style: TextStyle(color: Colors.grey, fontSize: 14.0),
+                        )
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        SizedBox(width: 25.0),
+                        Row(
+                          children: <Widget>[
+                            Radio(
+                              value: 0,
+                              groupValue: _radioValue,
+                              onChanged:
+                                  (isEditing) ? _handleRadioValueChange : null,
+                            ),
+                            Text("Laki-laki")
+                          ],
+                        ),
+                        SizedBox(width: 20.0),
+                        Row(
+                          children: <Widget>[
+                            Radio(
+                              value: 1,
+                              groupValue: _radioValue,
+                              onChanged:
+                                  (isEditing) ? _handleRadioValueChange : null,
+                            ),
+                            Text("Perempuan")
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
                 TextFormField(
+                  initialValue: _usersData.address,
+                  enabled: isEditing,
                   maxLines: null,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
@@ -202,151 +274,106 @@ class _RegisterPageState extends State<RegisterPage> {
                       return "Harap isi alamat anda";
                     return null;
                   },
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   onSaved: (String value) {
-                    udata.address = value;
-                  },
-                ),
-                SizedBox(height: 30.0),
-                Column(
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        SizedBox(width: 3.0),
-                        Icon(
-                          Icons.people,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(width: 12.0),
-                        Text(
-                          "Jenis Kelamin",
-                          style: TextStyle(color: Colors.grey, fontSize: 18.0),
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        SizedBox(width: 25.0),
-                        Row(
-                          children: <Widget>[
-                            Radio(
-                              value: 0,
-                              groupValue: _radioValue,
-                              onChanged: _handleRadioValueChange,
-                            ),
-                            Text("Laki-laki")
-                          ],
-                        ),
-                        SizedBox(width: 20.0),
-                        Row(
-                          children: <Widget>[
-                            Radio(
-                              value: 1,
-                              groupValue: _radioValue,
-                              onChanged: _handleRadioValueChange,
-                            ),
-                            Text("Perempuan")
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                TextFormField(
-                  key: _passwordFieldKey,
-                  style: new TextStyle(color: Colors.black),
-                  decoration: new InputDecoration(
-                    icon: const Icon(
-                      Icons.lock,
-                    ),
-                    border: const UnderlineInputBorder(),
-                    labelText: 'Password *',
-                    labelStyle: TextStyle(color: Colors.black45),
-                    helperStyle: TextStyle(color: Colors.black45),
-                    suffixIcon: new GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
-                      },
-                      child: _obscureText ? iconVisible : iconVisibleOff,
-                    ),
-                  ),
-                  onSaved: (String value) {
-                    pass = value;
-                  },
-                  maxLength: 16,
-                  obscureText: _obscureText,
-                  validator: _validatePassword,
-                ),
-                TextFormField(
-                  key: _passwordVFieldKey,
-                  style: new TextStyle(color: Colors.black),
-                  decoration: new InputDecoration(
-                    icon: const Icon(
-                      Icons.lock,
-                    ),
-                    border: const UnderlineInputBorder(),
-                    labelText: 'Ulangi Password',
-                    labelStyle: TextStyle(color: Colors.black45),
-                    helperStyle: TextStyle(color: Colors.black45),
-                  ),
-                  onSaved: (String value) {
-                    udata.pass = value;
-                  },
-                  maxLength: 16,
-                  obscureText: true,
-                  validator: (String val) {
-                    final FormFieldState<String> passwordField =
-                        _passwordFieldKey.currentState;
-                    if (passwordField.value != val)
-                      return 'Password tidak cocok';
-                    return null;
+                    _usersData.address = value;
                   },
                 ),
                 SizedBox(height: 20.0),
-                RaisedButton(
-                  onPressed: () {
-                    if (this._formKey.currentState.validate()) {
-                      _formKey.currentState.save();
-
-                      _scaffoldKey.currentState.showSnackBar(SnackBar(
-                        content: Text("registering account"),
-                      ));
-
-                      //DO REGISTER AND LOGIN
-                      PenumpangServices().register(udata).then((x) async {
-                        SharedPreferences prefs =
-                            await SharedPreferences.getInstance();
-                        Navigator.of(context).pop(true);
-                        Navigator.pushReplacementNamed(context, '/indexnew');
-                        prefs.setString("saved_uname", udata.username);
-                      });
-                    }
-                  },
-                  child: Container(
-                    alignment: Alignment.center,
-                    child: Text("Daftar"),
-                    height: 50.0,
-                  ),
-                  color: Theme.of(context).primaryColor,
-                  textColor: Colors.white,
-                ),
-                SizedBox(height: 15.0),
               ],
             ),
-          ),
-        ),
-      );
+          ));
     }
 
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Buat Akun"),
         elevation: 0.0,
+        actions: <Widget>[
+          (isSaving)
+              ? Container(
+                  margin: EdgeInsets.only(top: 15.0, bottom: 15.0, right: 20.0),
+                  child: CircularProgressIndicator(
+                    backgroundColor: Colors.white,
+                  ),
+                  height: 20.0,
+                  width: 25.0,
+                )
+              : FlatButton(
+                  child: Text(
+                    (isEditing) ? "SIMPAN" : "EDIT",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      if (isEditing) {
+                        if (this._formKey.currentState.validate()) {
+                          _formKey.currentState.save();
+
+                          setState(() {
+                            isSaving = true;
+                            _scaffoldKey.currentState.showSnackBar(SnackBar(
+                              content: Text("Menyimpan Data..."),
+                            ));
+                          });
+
+                          //DO SAVE HERE
+                          PenumpangServices().editUser(_usersData).then((x) {
+                            _scaffoldKey.currentState.showSnackBar(SnackBar(
+                              content: Text("Data Tersimpan"),
+                            ));
+                            setState(() {
+                              isSaving = false;
+                            });
+                          }).catchError((e) {
+                            _scaffoldKey.currentState.showSnackBar(SnackBar(
+                              content: Text("Data Tidak Tersimpan"),
+                            ));
+                            setState(() {
+                              isSaving = false;
+                            });
+                            print(e.toString());
+                          });
+                          isEditing = false;
+                        }
+                      } else {
+                        isEditing = true;
+                      }
+                    });
+                  },
+                )
+        ],
+        title: Text("Profil Saya"),
       ),
-      body: _loginBody(),
+      body: (!isLoading)
+          ? SingleChildScrollView(
+              child: _profileBody(),
+            )
+          : Container(
+              alignment: Alignment.center,
+              child: CircularProgressIndicator(),
+            ),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.all(15.0),
+        child: RaisedButton(
+          color: Colors.red[800],
+          padding: EdgeInsets.all(15.0),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          onPressed: () {
+            _doLogout();
+          },
+          child: Container(
+            height: 20.0,
+            width: MediaQuery.of(context).size.width,
+            alignment: Alignment.center,
+            child: Text(
+              "LOG OUT",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

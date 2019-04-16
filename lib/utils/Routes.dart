@@ -8,7 +8,7 @@ class Routes {
   static final routes = <String, WidgetBuilder>{
     '/login': (context) => LoginPage(),
     '/register': (context) => RegisterPage(),
-    '/index': (context) => MainPage(),
+    // '/index': (context) => MainPage(),
     '/indexnew': (context) => MainPageNew(),
   };
 }

@@ -2,23 +2,18 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:ujikom_efrizal/model/AirportData.dart';
 import 'package:ujikom_efrizal/model/RoutesData.dart';
 import 'package:ujikom_efrizal/pages/RouteSearch.dart';
-import 'package:ujikom_efrizal/pages/components/AirportSearch.dart';
-import 'package:ujikom_efrizal/utils/AirportUtils.dart';
 import 'package:ujikom_efrizal/utils/Navigator.dart';
-import 'package:numberpicker/numberpicker.dart';
 
-class FlightTab extends StatefulWidget {
-  FlightTab({@required this.rdata});
+class TrainTab extends StatefulWidget {
+  TrainTab({@required this.rdata});
   final List<RoutesData> rdata;
   @override
-  _FlightTabState createState() => _FlightTabState();
+  _TrainTabState createState() => _TrainTabState();
 }
 
-class _FlightTabState extends State<FlightTab>
-    with AutomaticKeepAliveClientMixin {
+class _TrainTabState extends State<TrainTab> {
   final _formKey = GlobalKey<FormState>();
   bool valid = true;
   DateTime flightDate = DateTime.now();
@@ -31,7 +26,7 @@ class _FlightTabState extends State<FlightTab>
     if (mounted) {
       setState(() {
         widget.rdata.forEach((f) {
-          if (f.namaTransportasi == "Pesawat") {
+          if (f.namaTransportasi == "Kereta") {
             rdata.add(f);
           }
         });
@@ -287,7 +282,7 @@ class _FlightTabState extends State<FlightTab>
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Icon(
-                  MdiIcons.airport,
+                  MdiIcons.train,
                   color: Colors.grey[300],
                   size: 100.0,
                 ),
@@ -295,7 +290,7 @@ class _FlightTabState extends State<FlightTab>
                   height: 30.0,
                 ),
                 Text(
-                  "Tidak Ada Travel Penerbangan",
+                  "Tidak Ada Travel Kereta Api",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: Colors.grey[300],
@@ -307,7 +302,4 @@ class _FlightTabState extends State<FlightTab>
           )
         : _airplaneBody();
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

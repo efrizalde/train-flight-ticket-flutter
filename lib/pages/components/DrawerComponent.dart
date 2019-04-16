@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ujikom_efrizal/utils/Navigator.dart';
 
 class DrawerComponent extends StatelessWidget {
   @override
@@ -38,7 +39,9 @@ class DrawerComponent extends StatelessWidget {
                     child: ListView(
                       children: <Widget>[
                         ListTile(
-                          onTap: () {},
+                          onTap: () {
+                            MyNavig().goToMyProfile(context);
+                          },
                           title: Text("Akun Saya"),
                           trailing: Icon(
                             Icons.navigate_next,
@@ -46,7 +49,9 @@ class DrawerComponent extends StatelessWidget {
                           ),
                         ),
                         ListTile(
-                          onTap: () {},
+                          onTap: () {
+                            MyNavig().goToMyOrder(context);
+                          },
                           title: Text("Pesanan Saya"),
                           trailing: Icon(
                             Icons.navigate_next,

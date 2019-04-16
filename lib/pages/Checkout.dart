@@ -6,22 +6,22 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ujikom_efrizal/model/AirportData.dart';
 import 'package:ujikom_efrizal/model/PassengerData.dart';
 import 'package:ujikom_efrizal/model/PaymentData.dart';
+import 'package:ujikom_efrizal/model/RoutesData.dart';
+import 'package:ujikom_efrizal/model/UsersData.dart';
 import 'package:ujikom_efrizal/pages/PaymentConfirmation.dart';
-import 'package:ujikom_efrizal/utils/Navigator.dart';
 import 'package:ujikom_efrizal/utils/PaymentUtils.dart';
+import 'package:ujikom_efrizal/utils/services/OrderServices.dart';
+import 'package:ujikom_efrizal/utils/services/PenumpangServices.dart';
 
 class FlightCheckout extends StatefulWidget {
-  FlightCheckout(
-      {@required this.dData,
-      @required this.aData,
-      @required this.flightDate,
-      @required this.person});
-
-  final AirportData dData;
-  final AirportData aData;
-  final DateTime flightDate;
-  final int person;
-
+  FlightCheckout({
+    this.rdata,
+    this.outlet,
+    this.dt,
+  });
+  final RoutesData rdata;
+  final String outlet;
+  final DateTime dt;
   @override
   _FlightCheckoutState createState() => _FlightCheckoutState();
 }
@@ -30,16 +30,19 @@ class _FlightCheckoutState extends State<FlightCheckout> {
   final _formKey = GlobalKey<FormState>();
   PageController pageCtrl = new PageController();
   PaymentData selectedPay = new PaymentData();
+  UsersData udata = new UsersData();
   List<PassengerData> pData = new List();
   List<PaymentData> payData = new List();
   int pIndex = 0;
 
   bool isPassengerValid = true;
+  bool isPassengerLoad = true;
   bool isPaymentSelected = false;
+  bool isOrdered = false;
 
   @override
   void initState() {
-    for (var i = 0; i < widget.person; i++) {
+    for (var i = 0; i < 1; i++) {
       setState(() {
         pData.add(PassengerData(name: "", nik: ""));
       });
@@ -48,6 +51,15 @@ class _FlightCheckoutState extends State<FlightCheckout> {
     PaymentUtils().loadPayment().then((onValue) {
       setState(() {
         payData = onValue;
+      });
+    });
+
+    PenumpangServices().getUname().then((uname) {
+      PenumpangServices().getuser(uname).then((user) {
+        setState(() {
+          isPassengerLoad = false;
+          udata = user;
+        });
       });
     });
 
@@ -65,23 +77,6 @@ class _FlightCheckoutState extends State<FlightCheckout> {
       );
       return Future.value(false);
     }
-  }
-
-  bool checkPassengerValid() {
-    pData.forEach((f) {
-      if (f.nik == "" || f.name == "") {
-        setState(() {
-          isPassengerValid = false;
-        });
-      } else {
-        setState(() {
-          isPassengerValid = true;
-          pageCtrl.animateToPage(1,
-              curve: Curves.ease, duration: Duration(milliseconds: 500));
-        });
-      }
-    });
-    return isPassengerValid;
   }
 
   void goToSearch(PaymentData x) async {
@@ -119,42 +114,11 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    "Masukkan Data Diri Penumpang",
+                    "Data Diri Penumpang",
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
                   ),
                   Divider(),
-                  SizedBox(height: 10.0),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 5.0),
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5.0)),
-                    child: Row(
-                      children: <Widget>[
-                        Text(
-                          "NIK", //TODO: LOCALIZE
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        Expanded(
-                          child: TextFormField(
-                            initialValue: pData[i].nik,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.all(10.0),
-                              border: InputBorder.none,
-                            ),
-                            textAlign: TextAlign.right,
-                            onSaved: (input) {
-                              setState(() {
-                                pData[i].nik = input;
-                              });
-                            },
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
                   SizedBox(height: 10.0),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 5.0),
@@ -169,17 +133,66 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                         ),
                         Expanded(
                           child: TextFormField(
-                            initialValue: pData[i].name,
+                            enabled: false,
+                            initialValue: udata.fullname,
+                            keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.all(10.0),
                               border: InputBorder.none,
                             ),
                             textAlign: TextAlign.right,
-                            onSaved: (input) {
-                              setState(() {
-                                pData[i].name = input;
-                              });
-                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10.0),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5.0)),
+                    child: Row(
+                      children: <Widget>[
+                        Text(
+                          "Tanggal Lahir", //TODO: LOCALIZE
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            enabled: false,
+                            initialValue: udata.dateofbirth,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10.0),
+                              border: InputBorder.none,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10.0),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5.0)),
+                    child: Row(
+                      children: <Widget>[
+                        Text(
+                          "No Telp", //TODO: LOCALIZE
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            enabled: false,
+                            initialValue: udata.phone,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(10.0),
+                              border: InputBorder.none,
+                            ),
+                            textAlign: TextAlign.right,
                           ),
                         )
                       ],
@@ -188,38 +201,6 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                   Expanded(
                     child: Container(),
                   ),
-                  RaisedButton(
-                    color: Theme.of(context).primaryColor,
-                    padding: EdgeInsets.all(15.0),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                    onPressed: () {
-                      _formKey.currentState.save();
-
-                      pData.forEach((f) {
-                        print("${f.nik} - ${f.name}");
-
-                        if (f.nik == "" || f.name == "") {
-                          setState(() {
-                            isPassengerValid = false;
-                          });
-                        } else {
-                          setState(() {
-                            isPassengerValid = true;
-                          });
-                        }
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      alignment: Alignment.center,
-                      child: Text(
-                        "SIMPAN DATA",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  )
                 ],
               ),
             ),
@@ -559,8 +540,10 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                           imageUrl: selectedPay.bankLogo,
                           width: 50.0,
                           height: 50.0,
-                          errorWidget: CircularProgressIndicator(),
-                          placeholder: CircularProgressIndicator(),
+                          errorWidget: (context, str, obj) =>
+                              CircularProgressIndicator(),
+                          placeholder: (context, str) =>
+                              CircularProgressIndicator(),
                         ),
                         title: Text("${selectedPay.bankName}"),
                         trailing: InkWell(
@@ -585,24 +568,60 @@ class _FlightCheckoutState extends State<FlightCheckout> {
             Expanded(
               child: Container(),
             ),
-            RaisedButton(
-              color: Theme.of(context).primaryColor,
-              padding: EdgeInsets.all(15.0),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0)),
-              onPressed: () {
-                pageCtrl.animateToPage(2,
-                    curve: Curves.ease, duration: Duration(milliseconds: 500));
-              },
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                alignment: Alignment.center,
-                child: Text(
-                  "KONFIRMASI",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
+            (isOrdered)
+                ? RaisedButton(
+                    color: Colors.grey,
+                    padding: EdgeInsets.all(15.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    onPressed: () => null,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "KONFIRMASI",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  )
+                : RaisedButton(
+                    color: Theme.of(context).primaryColor,
+                    padding: EdgeInsets.all(15.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    onPressed: () {
+                      setState(() {
+                        isOrdered = false;
+                      });
+                      PenumpangServices().getUname().then((uname) {
+                        PenumpangServices().getuser(uname).then((uid) {
+                          OrderServices()
+                              .makeOrder(
+                            data: widget.rdata,
+                            date: widget.dt,
+                            outlet: widget.outlet,
+                            userId: uid.id,
+                          )
+                              .then((val) {
+                            setState(() {
+                              isOrdered = true;
+                              pageCtrl.animateToPage(2,
+                                  curve: Curves.ease,
+                                  duration: Duration(milliseconds: 500));
+                            });
+                          });
+                        });
+                      });
+                    },
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      alignment: Alignment.center,
+                      child: Text(
+                        "KONFIRMASI",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
             SizedBox(
               height: 20.0,
             )
@@ -629,8 +648,10 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                         imageUrl: payData[i].bankLogo,
                         width: 50.0,
                         height: 50.0,
-                        errorWidget: CircularProgressIndicator(),
-                        placeholder: CircularProgressIndicator(),
+                        errorWidget: (context, str, obj) =>
+                            CircularProgressIndicator(),
+                        placeholder: (context, str) =>
+                            CircularProgressIndicator(),
                       ),
                       title: Text("${payData[i].bankName}"),
                       trailing: Icon(
@@ -822,13 +843,8 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                                         SizedBox(height: 10.0),
                                         Row(
                                           children: <Widget>[
-                                            Icon(
-                                              MdiIcons.skype,
-                                              size: 30.0,
-                                            ),
-                                            SizedBox(width: 8.0),
                                             Text(
-                                              "CGK - SUB",
+                                              "${widget.rdata.ruteAwal} - ${widget.rdata.ruteAkhir}",
                                               style: TextStyle(
                                                   fontWeight: FontWeight.bold),
                                             )
@@ -838,7 +854,7 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                                         Row(
                                           children: <Widget>[
                                             Text(
-                                              "16:00 - 18:20",
+                                              "${DateFormat('HH:mm').format(widget.dt)} - ${DateFormat('HH:mm').format(widget.dt.add(Duration(hours: 1)))}",
                                               style:
                                                   TextStyle(color: Colors.grey),
                                             )
@@ -923,13 +939,15 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                                   return ListTile(
                                     dense: true,
                                     onTap: () {
-                                      openBottomSheet(i);
+                                      if (!isPassengerLoad) {
+                                        openBottomSheet(i);
+                                      }
                                     },
                                     contentPadding:
                                         EdgeInsets.symmetric(horizontal: 8.0),
-                                    title: (pData[i].name != "")
-                                        ? Text("${pData[i].name}")
-                                        : Text("Orang ${i + 1}"),
+                                    title: (!isPassengerLoad)
+                                        ? Text("${udata.fullname}")
+                                        : Text("Loading..."),
                                     leading: Icon(Icons.person_outline),
                                     trailing: Icon(
                                       Icons.navigate_next,
@@ -948,7 +966,9 @@ class _FlightCheckoutState extends State<FlightCheckout> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10.0)),
                               onPressed: () {
-                                checkPassengerValid();
+                                pageCtrl.animateToPage(1,
+                                    curve: Curves.ease,
+                                    duration: Duration(milliseconds: 500));
                               },
                               child: Container(
                                 width: MediaQuery.of(context).size.width,
@@ -981,22 +1001,8 @@ class _FlightCheckoutState extends State<FlightCheckout> {
             setState(() {
               pIndex = i;
             });
-            pData.forEach((f) {
-              if (f.nik == "" || f.name == "") {
-                setState(() {
-                  isPassengerValid = false;
-                  pageCtrl.animateToPage(0,
-                      curve: Curves.ease,
-                      duration: Duration(milliseconds: 500));
-                });
-              } else {
-                setState(() {
-                  isPassengerValid = true;
-                });
-              }
-            });
             if (i == 2) {
-              if (isPaymentSelected) {
+              if (isOrdered) {
                 pageCtrl.animateToPage(2,
                     curve: Curves.ease, duration: Duration(milliseconds: 500));
               } else {
