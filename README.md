@@ -10,10 +10,6 @@
 
     -   Android SDK Build Tools
 
-![](media/6d53a72d7dcb8ea9d868962b758b3c36.png)
-
-![](media/cad6cdb3939a6018fb175b8b6c2ce67a.png)
-
 -   Install Flutter SDK yang bisa didapatkan di <http://flutter.dev> dan untuk
     cara pemasangan flutter bisa dilihat di
     <https://flutter.dev/docs/get-started/install> kemudian pilih sistem operasi
@@ -25,8 +21,6 @@
 
     Nantinya akan muncul hasil perintah seperti ini sebagai indikasi apakah
     kebutuhan flutter SDK telah benar-benar terpasang.
-
-    ![](media/aaf9a39684c8ccf54ebf92d2cff569e8.png)
 
     Dan apabila muncul error mengenai *Android license status unknown* masukkan
     perintah berikut ini kemudian tekan ‘Y’ pada setiap penerimaan akses lisensi
