@@ -1,6 +1,3 @@
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:convert';
-
 import 'package:ujikom_efrizal/model/PaymentData.dart';
 
 class PaymentUtils {

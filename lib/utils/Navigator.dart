@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:ujikom_efrizal/model/AirportData.dart';
 import 'package:ujikom_efrizal/model/PaymentData.dart';
-import 'package:ujikom_efrizal/pages/FlightCheckout.dart';
-import 'package:ujikom_efrizal/pages/FlightSearchResult.dart';
+import 'package:ujikom_efrizal/model/RoutesData.dart';
+import 'package:ujikom_efrizal/pages/Checkout.dart';
 import 'package:ujikom_efrizal/pages/PaymentConfirmation.dart';
+import 'package:ujikom_efrizal/pages/Profile.dart';
+import 'package:ujikom_efrizal/pages/UserOrders.dart';
 import 'package:ujikom_efrizal/pages/components/AirportSearch.dart';
 
 class MyNavig {
-  Future<dynamic> goToCheckout(BuildContext context, AirportData ddata,
-      AirportData adata, DateTime fDate, int person) async {
+  Future<dynamic> goToCheckout(BuildContext context, RoutesData rdata,
+      String outlet, DateTime dt) async {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => FlightCheckout(
-              dData: ddata,
-              aData: adata,
-              flightDate: fDate,
-              person: person,
+              dt: dt,
+              outlet: outlet,
+              rdata: rdata,
             ),
       ),
     );
@@ -32,20 +33,6 @@ class MyNavig {
     );
   }
 
-  Future<dynamic> goToFlightResult(BuildContext context, AirportData ddata,
-      AirportData adata, DateTime fDate, int person) async {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => FlightResult(
-              dData: ddata,
-              aData: adata,
-              flightDate: fDate,
-              person: person,
-            ),
-      ),
-    );
-  }
-
   Future<dynamic> goToPayConfirm(
       BuildContext context, PaymentData payData) async {
     Navigator.of(context).push(
@@ -53,6 +40,22 @@ class MyNavig {
         builder: (context) => PayConfirm(
               data: payData,
             ),
+      ),
+    );
+  }
+
+  Future<dynamic> goToMyOrder(BuildContext context) async {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => UserOrders(),
+      ),
+    );
+  }
+
+  Future<dynamic> goToMyProfile(BuildContext context) async {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProfilePage(),
       ),
     );
   }
